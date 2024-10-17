@@ -1,0 +1,1 @@
+python cli.py onnx-inference --model ./model.onnx --image-path ./data/train/leaf2/leaf_2_1.png

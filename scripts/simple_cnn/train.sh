@@ -1,0 +1,1 @@
+python cli.py train --config ./configs/simple_cnn.py 
