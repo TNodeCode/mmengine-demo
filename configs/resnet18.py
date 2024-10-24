@@ -1,14 +1,12 @@
 model=dict(
-  type='SimpleCNN',
-  blocks=[
-    dict(type='ConvBlock', in_channels=3, out_channels=32, out_shape=64, kernel_size=3, pool_size=2),
-    dict(type='ConvBlock', in_channels=32, out_channels=64, out_shape=32, kernel_size=3, pool_size=2),
-    dict(type='ConvBlock', in_channels=64, out_channels=128, out_shape=16, kernel_size=3, pool_size=2),
-    dict(type='ConvBlock', in_channels=128, out_channels=256, out_shape=8, kernel_size=3, pool_size=2),
-  ],
-  classifier=[
-    dict(in_features=4096, out_features=2),
-  ]
+  type='ResNet18',
+  head=dict(
+      input_size=1000,
+      hidden_layers=[],
+      num_classes=10,
+      drop_p=0.2,
+  ),
+  fine_tuning=True,
 )
 
 train_dataloader=dict(
@@ -18,7 +16,8 @@ train_dataloader=dict(
       type='ImageDataset',
       data_prefix='data/train',
       pipeline=[
-          dict(type='Resize', size=(64, 64)),
+          dict(type='RandomRotation', degrees=30),
+          dict(type='RandomResizedCrop', size=224, scale=(0.8, 1.2)),
           dict(type='ToImage'),
           dict(type='Normalize', mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
       ]
@@ -96,4 +95,4 @@ hooks=[
   dict(type='CheckpointHook', interval=1)
 ]
 
-work_dir = 'work_dirs/simple_cnn'
+work_dir = 'work_dirs/resnet18'

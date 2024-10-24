@@ -3,6 +3,7 @@
 
 data/
 work_dirs
+*.onnx
 
 ### JupyterNotebooks ###
 # gitignore template for Jupyter Notebooks
