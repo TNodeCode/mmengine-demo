@@ -71,7 +71,9 @@ def test(config, resume):
 @click.option('--config', type=click.Path(exists=True), required=True, help='Path to the configuration file.')
 @click.option('--checkpoint', type=click.Path(exists=True), required=True, help='Path to the checkpoint file for the trained model.')
 @click.option('--image-path', type=click.Path(exists=True), required=True, help='Path to the input image for inference.')
-def inference(config, checkpoint, image_path):
+@click.option('--image-size', type=int, required=True, help='Image size')
+@click.option('--device', type=str, required=False, default="cpu", help='Device (cpu | cuda)')
+def inference(config, checkpoint, image_path, image_size, device):
     """Perform inference on a single image."""
     # Load the configuration and initialize the runner
     cfg = Config.fromfile(config)
@@ -85,23 +87,22 @@ def inference(config, checkpoint, image_path):
 
     # Load the trained model checkpoint
     runner.load_checkpoint(checkpoint)
-    model = runner.model.eval()  # Set model to evaluation mode
+    model = runner.model.eval().to(device)  # Set model to evaluation mode
 
     # Load and preprocess the image
     image = Image.open(image_path).convert('RGB')
     preprocess = transforms.Compose([
-        transforms.Resize((64, 64)),
+        transforms.Resize((image_size, image_size)),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
-    image_tensor = preprocess(image)
+    image_tensor = preprocess(image).to(device)
 
     # Perform inference
     with torch.no_grad():
         output = model(imgs=[image_tensor], labels=[-1], mode='predict')
     
     # Process and print the output
-    print("OUTPUT", output)
     _, predicted_class = output[0]['pred_score'].max(0)
     print(f'Predicted class: {predicted_class.item()}')
 
@@ -110,7 +111,7 @@ def inference(config, checkpoint, image_path):
 @click.option('--config', type=click.Path(exists=True), required=True, help='Path to the configuration file.')
 @click.option('--checkpoint', type=click.Path(exists=True), required=True, help='Path to the checkpoint file for the trained model.')
 @click.option('--output', type=click.Path(), required=True, help='Path to save the exported ONNX model.')
-@click.option('--image-size', default=64, help='Input image size (default: 64)')
+@click.option('--image-size', type=int, required=True, help='Image size')
 def export(config, checkpoint, output, image_size):
     """Export the model to ONNX format."""
     cfg = Config.fromfile(config)
@@ -148,14 +149,15 @@ def export(config, checkpoint, output, image_size):
 @cli.command()
 @click.option('--model', type=click.Path(exists=True), required=True, help='Path to the ONNX model file.')
 @click.option('--image-path', type=click.Path(exists=True), required=True, help='Path to the input image for ONNX inference.')
-def onnx_inference(model, image_path):
+@click.option('--image-size', type=int, required=True, help='Image size')
+def onnx_inference(model, image_path: str, image_size: int):
     """Perform inference using the ONNX model on a single image."""
     # Initialize the ONNX runtime session
     session = ort.InferenceSession(model)
 
     # Define the preprocessing for the image
     preprocess = transforms.Compose([
-        transforms.Resize((64, 64)),
+        transforms.Resize((image_size, image_size)),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])

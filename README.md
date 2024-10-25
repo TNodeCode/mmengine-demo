@@ -42,6 +42,64 @@ $ python scripts/datasets/generate_mnist.py
 $ python scripts/datasets/generate_flowers102.py
 ```
 
-## Train a simple CNN model
+## Train a model on the Flowers 102 dataset
 
-Within `./models/simple_cnn.py` you will find an implementation of a simple model that can classify images. The configuration for this model can be found under `./configs/simple_cnn.py`. The script for training, evaluation, testing, inference and export to the ONNX format can be found in the directory `./scripts/simple_cnn`.
+After you have downloaded the Flowers102 dataset you can train a MobileNet model on this dataset with the following command:
+
+```bash
+$ python cli.py train --config ./configs/mobilenetv3_large/mobilenetv3_large_flowers102.py
+```
+
+The training logs and weight files can be found in `./work_dirs/mobilenetv3_large/flowers102` after training.
+If you want to make changes to the training hyperparameters like the number of classes that your dataset has you can do this by copying the configuration file found in `./configs/mobilenetv3_large/mobilenetv3_large_flowers102.py` and adapt the parameters.
+
+## Validate model
+
+After training you can evaluate the model on the validation dataset using the following command:
+
+```bash
+$ python cli.py val --config ./configs/mobilenetv3_large/mobilenetv3_large_flowers102.py --resume work_dirs/mobilenetv3_large/flowers102/epoch_25.pth
+```
+
+You can also evaluate the model on the test dataset with this command:
+
+```bash
+$ python cli.py test --config ./configs/mobilenetv3_large/mobilenetv3_large_flowers102.py --resume work_dirs/mobilenetv3_large/flowers102/epoch_25.pth
+```
+
+## Performing Inference using PyTorch
+
+If you want to perform inference on images using the trained model you can do this with the following command:
+
+```bash
+$ python cli.py inference \
+  --config configs/mobilenetv3_large/mobilenetv3_large_flowers102.py \
+  --checkpoint work_dirs/mobilenetv3_large/flowers102/epoch_22.pth \
+  --image-path data/flowers102/test/0/0.png \
+  --image-size 224
+```
+
+## Export the model to the ONNX format
+
+When the model is trained it can be useful to export the model to a format that can be used without the PyTorch runtime. A popular format is ONNX, which can be read by many other runtimes like TensorFlow Lite or Tensor RT from NVidia. You can export your trained model using the following command:
+
+```bash
+$ python cli.py export \
+  --config ./configs/mobilenetv3_large/mobilenetv3_large_flowers102.py \
+  --checkpoint ./work_dirs/mobilenetv3_large/flowers102/epoch_22.pth \
+  --output work_dirs/mobilenetv3_large/flowers102/model.onnx \
+  --image-size 224
+```
+
+You should use the same image size that you have used during training to prevent the onnx model behaving different from the PyTorch model.
+
+## Using ONNX model for inference
+
+Within this repository we have included a command for testing your exported ONNX model using the ONNX runtime. You can test it with the following command:
+
+```bash
+$ python cli.py onnx-inference \
+  --model ./work_dirs/mobilenetv3_large/flowers102/model.onnx \
+  --image-path ./data/flowers102/test/0/0.png \
+  --image-size 224
+```
