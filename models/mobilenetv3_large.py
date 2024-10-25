@@ -1,14 +1,12 @@
-import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torchvision import models
-from mmengine.model import BaseModel
 from mmengine.registry import MODELS
 from .classification_head import ClassificationHead
+from .base_classification_model import BaseClassificationModel
 
 
 @MODELS.register_module()
-class MobileNetV3Large(BaseModel):
+class MobileNetV3Large(BaseClassificationModel):
     """
     see: https://mmengine.readthedocs.io/en/latest/tutorials/model.html
     """
@@ -23,7 +21,7 @@ class MobileNetV3Large(BaseModel):
         super(MobileNetV3Large, self).__init__()
         
         # Creating classification head module
-        self.classification_head = ClassificationHead(
+        classification_head = ClassificationHead(
             input_size = head['input_size'], 
             hidden_layers = head['hidden_layers'], 
             output_size = head['num_classes'], 
@@ -31,35 +29,13 @@ class MobileNetV3Large(BaseModel):
         )
 
         # Using a Pretrained Network (You may use a different network here, bit we will use mobilenet)
-        self.backbone_model = models.mobilenet_v3_large(weights='DEFAULT')
+        self.model = models.mobilenet_v3_large(weights='DEFAULT')
+        self.criterion = nn.NLLLoss()
 
         # Freezing the parameters so we don't backprop through them, 
         # we will backprop through the classifier parameters only later
-        for param in self.backbone_model.parameters():
+        for param in self.model.parameters():
             param.requires_grad = fine_tuning
 
         # Use the classification network as the classification layer in te pretrained network
-        print(self.backbone_model)
-        self.backbone_model.fc = self.classification_head
-        
-
-    def forward(self, *input, **kwargs):
-        # Prepare arguments
-        if 'mode' in kwargs.keys():
-            imgs, labels, mode = kwargs['imgs'], kwargs['labels'], kwargs['mode']
-            x = torch.stack(imgs)
-        else:
-            x, labels, mode = input[0], torch.tensor([-1]), None
-        
-        # Forward inputs
-        x = self.backbone_model(x)
-        x = self.classification_head(x)
-        
-        # Build response
-        if mode == 'loss':
-            return {'loss': F.cross_entropy(x, torch.tensor(labels))}
-        elif mode == 'predict':
-            return list(map(lambda v: {'gt_label': torch.tensor([v[0]]), 'pred_score': v[1]}, zip(labels, x)))
-        else:
-            return x
-        
+        self.model.classifier = classification_head

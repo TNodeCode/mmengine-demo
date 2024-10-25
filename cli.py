@@ -127,6 +127,7 @@ def export(config, checkpoint, output, image_size):
 
     runner.load_checkpoint(checkpoint)
     model = runner.model.eval()
+    model = model.to('cpu')
 
     dummy_input = torch.randn(1, 3, image_size, image_size)
     

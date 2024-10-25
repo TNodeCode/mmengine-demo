@@ -1,0 +1,10 @@
+model=dict(
+  type='MobileNetV3Large',
+  head=dict(
+      input_size=960,
+      hidden_layers=[512],
+      num_classes=1000,
+      drop_p=0.2,
+  ),
+  fine_tuning=True,
+)

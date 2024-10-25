@@ -1,23 +1,18 @@
-model=dict(
-  type='MobileNetV3Large',
-  head=dict(
-      input_size=1000,
-      hidden_layers=[],
-      num_classes=10,
-      drop_p=0.2,
-  ),
-  fine_tuning=True,
-)
+img_shape = 224
 
 train_dataloader=dict(
-  batch_size=8,
+  batch_size=32,
   num_workers=0,
+  sampler=dict(
+    type='DefaultSampler',
+    shuffle=True
+  ),
   dataset=dict(
       type='ImageDataset',
-      data_prefix='data/mnist/train',
+      data_prefix='data/train',
       pipeline=[
-          dict(type='RandomRotation', degrees=30),
-          dict(type='RandomResizedCrop', size=224, scale=(0.8, 1.2)),
+          dict(type='RandomResizedCrop', size=img_shape, scale=(0.8, 1.2)),
+          dict(type='RandomRotation', degrees=15),
           dict(type='ToImage'),
           dict(type='Normalize', mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
       ]
@@ -35,13 +30,17 @@ train_evaluator=dict(
 )
 
 val_dataloader=dict(
-  batch_size=4,
+  batch_size=32,
   num_workers=0,
+  sampler=dict(
+    type='DefaultSampler',
+    shuffle=True
+  ),
   dataset=dict(
       type='ImageDataset',
-      data_prefix='data/mnist/val',
+      data_prefix='data/val',
       pipeline=[
-          dict(type='Resize', size=(64, 64)),
+          dict(type='Resize', size=(img_shape, img_shape)),
           dict(type='ToImage'),
           dict(type='Normalize', mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
       ]
@@ -57,13 +56,17 @@ val_cfg=dict(
 )
 
 test_dataloader=dict(
-  batch_size=4,
+  batch_size=32,
   num_workers=0,
+  sampler=dict(
+    type='DefaultSampler',
+    shuffle=True
+  ),
   dataset=dict(
       type='ImageDataset',
-      data_prefix='data/mnist/test',
+      data_prefix='data/test',
       pipeline=[
-          dict(type='Resize', size=(64, 64)),
+          dict(type='Resize', size=(img_shape, img_shape)),
           dict(type='ToImage'),
           dict(type='Normalize', mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
       ]
@@ -77,22 +80,3 @@ test_evaluator=dict(
 test_cfg=dict(
     type='TestLoop'
 )
-
-optim_wrapper=dict(
-  optimizer=dict(type='SGD', lr=0.01, momentum=0.9, weight_decay=0.0005),
-  clip_grad=dict(max_norm=35, norm_type=2),
-)
-
-log_config=dict(
-  interval=10,
-  hooks=[
-    dict(type='TextLoggerHook'),
-    dict(type='FileLoggerHook', by_epoch=True, interval=1, out_dir='work_dirs')
-  ]
-)
-
-hooks=[
-  dict(type='CheckpointHook', interval=1)
-]
-
-work_dir = 'work_dirs/mobilenetv3_large'

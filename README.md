@@ -11,6 +11,37 @@ The aim of this repository is to demonstrate how to use the <a href="https://git
   </div>
 </div>
 
+## Setup thie project
+
+```bash
+# Create conda environment
+$ conda create -y -n mmengine python==3.12 pip
+$ conda activate mmengine
+
+# Install PyTorch
+$ pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
+
+# Install OpenMMLab libraries
+$ pip install openmim
+$ mim install mmengine
+$ mim install mmpretrain
+
+# Install other requirements
+$ pip install -r requirements.txt
+```
+
+## Download datasets
+
+There are some default datasets that you can download for training. This can be done with the following commands:
+
+```bash
+# MNIST digits dataset
+$ python scripts/datasets/generate_mnist.py
+
+# Flowers102 Dataset
+$ python scripts/datasets/generate_flowers102.py
+```
+
 ## Train a simple CNN model
 
 Within `./models/simple_cnn.py` you will find an implementation of a simple model that can classify images. The configuration for this model can be found under `./configs/simple_cnn.py`. The script for training, evaluation, testing, inference and export to the ONNX format can be found in the directory `./scripts/simple_cnn`.

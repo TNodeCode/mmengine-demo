@@ -16,6 +16,7 @@ class SimpleCNN(BaseModel):
         self.blocks = nn.Sequential(*list(map(lambda conf: ConvBlock(**conf), blocks)))
         self.head = nn.Sequential(*list(map(lambda conf: nn.Linear(**conf), classifier)))
         self.prob = nn.Softmax(dim=1)
+        self.criterion = nn.CrossEntropyLoss()
 
     def forward(self, *input, **kwargs):
         # Prepare arguments
@@ -33,7 +34,7 @@ class SimpleCNN(BaseModel):
         
         # Build response
         if mode == 'loss':
-            return {'loss': F.cross_entropy(x, torch.tensor(labels))}
+            return {'loss': self.criterion(x, torch.tensor(labels).to(x.device))}
         elif mode == 'predict':
             return list(map(lambda v: {'gt_label': torch.tensor([v[0]]), 'pred_score': v[1]}, zip(labels, x)))
         else:

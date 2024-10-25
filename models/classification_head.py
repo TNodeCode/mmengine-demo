@@ -1,12 +1,11 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from mmengine.model import BaseModel
 from mmengine.registry import MODELS
 
 
 @MODELS.register_module()
-class ClassificationHead(BaseModel):
+class ClassificationHead(nn.Module):
     '''
     Defining a class for the classification head network.
     '''
@@ -34,6 +33,9 @@ class ClassificationHead(BaseModel):
         else:
             self.hidden_layers = []
             self.output = nn.Linear(input_size, output_size)
+
+        # classification function
+        self.cls = nn.LogSoftmax(dim=1)
         
         # dropout helps the model to generalize better
         self.dropout = nn.Dropout(p=drop_p)
@@ -53,4 +55,4 @@ class ClassificationHead(BaseModel):
             x = self.dropout(x)
         x = self.output(x)
         
-        return F.log_softmax(x, dim=1)
+        return self.cls(x)

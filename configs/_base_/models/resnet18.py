@@ -1,0 +1,10 @@
+model=dict(
+  type='ResNet18',
+  head=dict(
+      input_size=512,
+      hidden_layers=[512],
+      num_classes=1000,
+      drop_p=0.2,
+  ),
+  fine_tuning=True,
+)
