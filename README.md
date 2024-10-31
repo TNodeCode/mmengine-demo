@@ -15,7 +15,7 @@ The aim of this repository is to demonstrate how to use the <a href="https://git
 
 ```bash
 # Create conda environment
-$ conda create -y -n mmengine python==3.12 pip
+$ conda create -y -n mmengine python==3.10 pip
 $ conda activate mmengine
 
 # Install PyTorch
