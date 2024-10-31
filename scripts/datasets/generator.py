@@ -5,11 +5,11 @@ from torch.utils.data import random_split
 
 def make_dataset(
         base_dir: str,
-        dataset_class,
         n_classes,
         dataset_train,
         dataset_val,
         dataset_test,
+        cmap=None,
         log_every=1000,
 ):
     train_dir = os.path.join(base_dir, 'train')
@@ -47,7 +47,7 @@ def make_dataset(
             if image.shape[0] <= 3:
                 image = image.permute(1,2,0)
             image_np = image.squeeze().numpy()  # Remove channel dimension
-            plt.imsave(os.path.join(directory, str(label), f'{idx}.png'), image_np)
+            plt.imsave(os.path.join(directory, str(label), f'{idx}.png'), image_np, cmap=cmap)
 
     # Save training images
     print("Generating training images ...")

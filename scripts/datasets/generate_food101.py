@@ -8,7 +8,6 @@ transform = transforms.ToTensor()
 # Create dataset
 make_dataset(
     base_dir='data/flowers102',
-    dataset_class=Food101,
     n_classes=101,
     log_every=50,
     dataset_train=Food101(root='data', split='test', download=True, transform=transform),
